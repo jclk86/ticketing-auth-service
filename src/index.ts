@@ -1,5 +1,6 @@
 import express from 'express';
 import 'express-async-errors';
+import mongoose from 'mongoose'; // used to connect to mongo db instance
 import { currentUserRouter } from './routes/current-user';
 import { signinRouter } from './routes/signin';
 import { signupRouter } from './routes/signup';
@@ -24,6 +25,17 @@ app.all('*', async () => {
 
 app.use(errorHandler);
 
-app.listen(3000, () => {
-  console.log('Listening on port 3000!!!!');
-});
+const start = async () => {
+  try {
+    await mongoose.connect('mongodb://auth-mongo-srv:27017/auth'); // if locally, url wil look like 'mongodb://localhost. But we are connecting to another pod. So need that cluster ip service - the auth-mongo-depl.yaml file. mongodb://name of service in mongo-depl files/name_of_db. Mongoose v6 does not require config options object in arg
+    console.log('connected to mongodb');
+  } catch (err) {
+    console.error(err);
+  }
+  //repositioned into after try catch in side of start to ensure connection to mongo occurred
+  app.listen(3000, () => {
+    console.log('Listening on port 3000!!!!');
+  });
+};
+
+start();
