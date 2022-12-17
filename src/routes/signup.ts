@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator'; // can do validation of params in url
 import { User } from '../models/user';
 import { RequestValidationError } from '../errors/request-validation-error';
+import { BadRequestError } from '../errors/bad-request-error';
 
 const router = express.Router();
 
@@ -26,11 +27,11 @@ router.post(
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      console.log('Email in use');
-      return res.send({});
+      throw new BadRequestError('Email in use');
     }
 
     const user = User.build({ email, password });
+    // here is where the prehook steps in -- hooks alter behavior of a set code by inserting itself . we hash password before a save
     await user.save();
 
     res.status(201).send(user);
